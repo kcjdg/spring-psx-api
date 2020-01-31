@@ -4,7 +4,7 @@ jdk:
  - oraclejdk8
 deploy:
  provider: heroku
- api-key: "71bf0c39-dd61-47b4-be0d-ccba69748d15"
+ api-key: "${HEROKU_KEY}"
  app: spring-psx-api
 before_install:
   - chmod +x mvnw
