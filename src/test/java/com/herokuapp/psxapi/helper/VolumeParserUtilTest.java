@@ -19,6 +19,6 @@ public class VolumeParserUtilTest {
     public void givenVolumeParserUtil_whenStaticMethodCalled_thenValidateExpectedResponse(){
         Assertions.assertEquals("9.3K",volumeParserUtil.convertNumber(new BigDecimal("9300")));
         Assertions.assertEquals("9.35M",volumeParserUtil.convertNumber(new BigDecimal("9350100")));
-        Assertions.assertEquals("9.44B",volumeParserUtil.convertNumber(new BigDecimal("9450100200")));
+        Assertions.assertEquals("9.45B",volumeParserUtil.convertNumber(new BigDecimal("9450100200")));
     }
 }
