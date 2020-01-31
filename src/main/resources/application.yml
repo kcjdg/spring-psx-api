@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: spring-psx-api
+  profiles:
+    active: ${SPRING_PROFILE:local}
+  sleuth:
+    sampler:
+      probability: 1
+
+psei:
+  config:
+    url : ${PSEI_URL}
+
+
+server:
+  port: ${PORT:8082}
