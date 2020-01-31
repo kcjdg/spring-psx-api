@@ -1,2 +1,2 @@
 # spring-psx-api
-An API for Philippine Stock Exchange (PSEI)
+Basic API for Philippine Stock Exchange (PSEI) deployed using Heroku and created using Spring Framework
