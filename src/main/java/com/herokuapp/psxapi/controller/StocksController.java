@@ -40,6 +40,7 @@ public class StocksController {
     }
 
 
+
     private StocksWrapper wrapResults(List<StocksSimple> stocks) {
         String date;
         StocksWrapper stocksWrapper = new StocksWrapper();

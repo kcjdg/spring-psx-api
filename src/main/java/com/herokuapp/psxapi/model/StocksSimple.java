@@ -10,12 +10,13 @@ import com.herokuapp.psxapi.helper.VolumeParserUtil;
 import lombok.Data;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class StocksSimple {
+public class StocksSimple implements Serializable {
     @JsonAlias("totalVolume")
     private String volume;
     @JsonAlias("percChangeClose")

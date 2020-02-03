@@ -3,7 +3,7 @@ package com.herokuapp.psxapi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.herokuapp.psxapi"})
 public class SpringPsxApiApplication {
 
     public static void main(String[] args) {
