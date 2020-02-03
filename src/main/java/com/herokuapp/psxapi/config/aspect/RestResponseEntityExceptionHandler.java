@@ -1,7 +1,7 @@
 package com.herokuapp.psxapi.config.aspect;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,10 +15,10 @@ import java.net.SocketTimeoutException;
 import java.util.Map;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @Autowired
-    private ErrorAttributes errorAttributes;
+    private final ErrorAttributes errorAttributes;
 
     @ExceptionHandler({ SocketTimeoutException.class })
     public ResponseEntity<Object> handleSocketTimeOut(Exception ex, WebRequest request) {
