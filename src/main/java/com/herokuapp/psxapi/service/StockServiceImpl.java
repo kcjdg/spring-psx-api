@@ -30,7 +30,7 @@ public class StockServiceImpl implements StockService {
     public List<StocksSimple> getAllStocks() {
         List<StocksSimple> stocks = (List<StocksSimple>) memcachedClient.get(PsxConstants.CACHE_STOCKS);
         if (stocks == null) {
-            MultiValueMap<String, String> param = createMultiMap("getSecuritiesAndIndicesForPublic");
+            MultiValueMap<String, String> param = createMultiMap(PsxConstants.PSEI_TICKER_METHOD);
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
             ResponseEntity<List<StocksSimple>> response = restTemplate.exchange(pseiProps.getUrl(), HttpMethod.POST, request,
                     new ParameterizedTypeReference<List<StocksSimple>>() {});
