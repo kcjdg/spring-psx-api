@@ -1,9 +1,11 @@
 package com.herokuapp.psxapi.service;
 
 
-import com.herokuapp.psxapi.config.PseiProps;
-import com.herokuapp.psxapi.config.PsxConstants;
-import com.herokuapp.psxapi.model.StocksSimple;
+import com.herokuapp.psxapi.config.PseiConfig;
+import com.herokuapp.psxapi.model.dao.Company;
+import com.herokuapp.psxapi.model.dao.CompanyRepository;
+import com.herokuapp.psxapi.model.dto.CompanyInfoDto;
+import com.herokuapp.psxapi.model.dto.StocksSimple;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.spy.memcached.MemcachedClient;
@@ -23,20 +25,22 @@ import java.util.List;
 public class StockServiceImpl implements StockService {
 
     private final RestTemplate restTemplate;
-    private final PseiProps pseiProps;
+    private final PseiConfig pseiConfig;
     private final MemcachedClient memcachedClient;
+    private final CompanyRepository companyRepository;
+
 
     @Override
     public List<StocksSimple> getAllStocks() {
-        List<StocksSimple> stocks = (List<StocksSimple>) memcachedClient.get(PsxConstants.CACHE_STOCKS);
+        List<StocksSimple> stocks = (List<StocksSimple>) memcachedClient.get(pseiConfig.getCacheName());
         if (stocks == null) {
-            MultiValueMap<String, String> param = createMultiMap(PsxConstants.PSEI_TICKER_METHOD);
+            MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksTickerApiName());
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
-            ResponseEntity<List<StocksSimple>> response = restTemplate.exchange(pseiProps.getUrl(), HttpMethod.POST, request,
+            ResponseEntity<List<StocksSimple>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
                     new ParameterizedTypeReference<List<StocksSimple>>() {});
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                memcachedClient.set(PsxConstants.CACHE_STOCKS, 60, response.getBody());
+                memcachedClient.set(pseiConfig.getCacheName(), 60, response.getBody());
                 return response.getBody();
             } else {
                 return Collections.EMPTY_LIST;
@@ -45,6 +49,31 @@ public class StockServiceImpl implements StockService {
         return stocks;
     }
 
+
+    @Override
+    public void saveCompanyInfo() {
+        if (companyRepository.findAll().isEmpty()) {
+            log.info("Unable to find stocks list");
+            getAllStocks().stream().forEach(stocks -> {
+                MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksCompanyApiName());
+                param.add("start", "0");
+                param.add("limit", "1");
+                param.add("Referer", pseiConfig.getStocksUrl());
+                param.add("query", stocks.getSymbol());
+                try{
+                    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
+                    ResponseEntity<CompanyInfoDto<Company>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
+                            new ParameterizedTypeReference<CompanyInfoDto<Company>>() {
+                            });
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        companyRepository.saveAll(response.getBody().getRecords());
+                    }
+                }catch (Exception e){
+                    log.info("Unable to continue {}",e);
+                }
+            });
+        }
+    }
 
     private HttpHeaders createHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();

@@ -1,8 +1,8 @@
 package com.herokuapp.psxapi.controller;
 
 import com.herokuapp.psxapi.helper.LocalDateUtils;
-import com.herokuapp.psxapi.model.StocksSimple;
-import com.herokuapp.psxapi.model.StocksWrapper;
+import com.herokuapp.psxapi.model.dto.StocksSimple;
+import com.herokuapp.psxapi.model.dto.StocksWrapper;
 import com.herokuapp.psxapi.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;

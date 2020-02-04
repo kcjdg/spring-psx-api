@@ -1,4 +1,4 @@
-package com.herokuapp.psxapi.model;
+package com.herokuapp.psxapi.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;

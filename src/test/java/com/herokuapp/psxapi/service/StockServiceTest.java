@@ -1,8 +1,7 @@
 package com.herokuapp.psxapi.service;
 
-import com.herokuapp.psxapi.config.PseiProps;
-import com.herokuapp.psxapi.config.PsxConstants;
-import com.herokuapp.psxapi.model.StocksSimple;
+import com.herokuapp.psxapi.config.PseiConfig;
+import com.herokuapp.psxapi.model.dto.StocksSimple;
 import net.spy.memcached.MemcachedClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class StockServiceImplTest {
+public class StockServiceTest {
 
     @Mock
     RestTemplate restTemplate;
@@ -33,7 +32,7 @@ public class StockServiceImplTest {
     MemcachedClient memcachedClient;
 
     @Mock
-    PseiProps pseiProps;
+    PseiConfig pseiConfig;
 
     @InjectMocks
     StockServiceImpl stockServiceImpl;
@@ -41,15 +40,14 @@ public class StockServiceImplTest {
 
     @Test
     public void given_memcached_when_cacheStocksHasValue_then_expectAListOfStockSimple() {
-        when(memcachedClient.get(PsxConstants.CACHE_STOCKS)).thenReturn(createStocks());
+        when(memcachedClient.get(pseiConfig.getCacheName())).thenReturn(createStocks());
         assertEquals(createStocks(), stockServiceImpl.getAllStocks());
     }
 
-
     @Test
     public void given_memcachedAndRestemplate_when_apiCalledAndHasReturn_then_cachedResponseAndExpectAList() {
-        when(memcachedClient.get(PsxConstants.CACHE_STOCKS)).thenReturn(null);
-        when(restTemplate.exchange(pseiProps.getUrl(), HttpMethod.POST, createRequest(),
+        when(memcachedClient.get(pseiConfig.getCacheName())).thenReturn(null);
+        when(restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, createRequest(),
                 new ParameterizedTypeReference<List<StocksSimple>>() {
                 })).thenReturn(new ResponseEntity<>(createStocks(), HttpStatus.OK));
 
@@ -59,8 +57,8 @@ public class StockServiceImplTest {
 
     @Test
     public void given_memcachedAndRestemplate_when_apiCalledAndNotOK_then_expectEmptyList() {
-        when(memcachedClient.get(PsxConstants.CACHE_STOCKS)).thenReturn(null);
-        when(restTemplate.exchange(pseiProps.getUrl(), HttpMethod.POST, createRequest(),
+        when(memcachedClient.get(pseiConfig.getCacheName())).thenReturn(null);
+        when(restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, createRequest(),
                 new ParameterizedTypeReference<List<StocksSimple>>() {
                 })).thenReturn(new ResponseEntity<>(createStocks(), HttpStatus.BAD_GATEWAY));
 
@@ -96,7 +94,7 @@ public class StockServiceImplTest {
     }
 
     private HttpEntity<MultiValueMap<String, String>> createRequest() {
-        MultiValueMap<String, String> param = createMultiMap(PsxConstants.PSEI_TICKER_METHOD);
+        MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCacheName());
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
         return request;
     }
