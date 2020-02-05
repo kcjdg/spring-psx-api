@@ -9,11 +9,11 @@ import java.util.List;
 
 @Data
 @JsonRootName("stocks")
-public class StocksWrapper {
+public class StocksWrapper <T> {
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "stock")
-    private List<StocksDto> stocks;
+    private List<T> stocks;
     @JacksonXmlProperty(isAttribute = true)
     private String asOf;
 

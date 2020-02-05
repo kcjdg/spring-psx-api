@@ -40,9 +40,9 @@ public class StockPrice implements Serializable {
     @JsonAlias("headerFiftyTwoWeekHigh")
     private Double week52High;
     @JsonAlias("headerTotalValue")
-    private Double totalValue;
+    private BigDecimal totalValue;
     @JsonAlias("headerTotalVolume")
-    private Double volume;
+    private BigDecimal totalVolume;
     @JsonAlias("headerLastTradePrice")
     private Double lastPrice;
     @JsonAlias("lastTradedDate")
@@ -51,7 +51,7 @@ public class StockPrice implements Serializable {
     private Double percentageClose;
 
     public void setTotalValue(String totalValue) {
-        this.totalValue = parseAndReplaceValue(totalValue);
+        this.totalValue = getBd(totalValue);
     }
 
     public void setOpen(String open) {
@@ -78,10 +78,9 @@ public class StockPrice implements Serializable {
         this.week52High = parseAndReplaceValue(week52High);
     }
 
-    public void setVolume(String volume) {
-        this.volume = parseAndReplaceValue(volume);
+    public void setTotalVolume(String volume) {
+        this.totalVolume = getBd(volume);
     }
-
 
     public void setLastPrice(String lastPrice) {
         this.lastPrice = parseAndReplaceValue(lastPrice);
@@ -91,10 +90,12 @@ public class StockPrice implements Serializable {
         this.lastTradedDate = LocalDateUtils.convertToLocalDateTimeUsingStandardFormat2(lastTradedDate);
     }
 
-
     private Double parseAndReplaceValue(String val){
-        BigDecimal bd = new BigDecimal(val.replaceAll(",", "")).setScale(2, RoundingMode.HALF_UP);
-        return bd.doubleValue();
+        return getBd(val).doubleValue();
     }
 
+    private BigDecimal getBd(String val){
+        BigDecimal bd = new BigDecimal(val.replaceAll(",", "")).setScale(2, RoundingMode.HALF_UP);
+        return bd;
+    }
 }

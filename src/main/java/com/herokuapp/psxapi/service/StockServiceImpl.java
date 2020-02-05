@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -86,23 +87,39 @@ public class StockServiceImpl implements StockService {
         if (!companies.isEmpty()) {
             log.info("Start back up data .");
             companies.stream().forEach(company -> {
-                MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
-                param.add("company", company.getSymbol());
-                param.add("security", company.getSecurityId().toString());
                 try {
-                    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
-                    ResponseEntity<CompanyInfoDto<StockPrice>> response = restTemplate.exchange(pseiConfig.getCompanyInfoUrl(), HttpMethod.POST, request,
-                            new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {
-                            });
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        stockPriceRepository.saveAll(response.getBody().getRecords());
-                    }
+                    stockPriceRepository.saveAll(fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()));
                 } catch (Exception e) {
                     log.info("Unable to continue saving stocks price {}", e);
                 }
             });
             log.info("Done saving stock price");
         }
+    }
+
+
+    @Override
+    public Optional<StockPrice> findStockDetails(String symbol) {
+        Optional<Company> companyOptional = companyRepository.findById(symbol);
+        if(companyOptional.isPresent()){
+            Company company = companyOptional.get();
+            return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
+        }
+        return Optional.empty();
+    }
+
+    private List<StockPrice> fetchStockDetails(String symbol, String securityId){
+        MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
+        param.add("company", symbol);
+        param.add("security", securityId);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
+        ResponseEntity<CompanyInfoDto<StockPrice>> response = restTemplate.exchange(pseiConfig.getCompanyInfoUrl(), HttpMethod.POST, request,
+                new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {
+                });
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return response.getBody().getRecords();
+        }
+        return Collections.EMPTY_LIST;
     }
 
     private HttpHeaders createHttpHeaders() {

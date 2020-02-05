@@ -21,7 +21,7 @@ public class ScheduledTask {
         stockService.saveCompanyInfo();
     }
 
-    @Scheduled(cron = "0 0 16 * * MON-FRI")
+    @Scheduled(cron = "0 45 16 * * MON-FRI", zone = "GMT+8:00")
     public void run(){
         stockService.saveStocksPrice();
     }

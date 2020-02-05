@@ -1,14 +1,22 @@
 package com.herokuapp.psxapi.service;
 
+
+import com.herokuapp.psxapi.model.dao.StockPrice;
 import com.herokuapp.psxapi.model.dto.StocksDto;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface StockService {
 
-    public List<StocksDto> getAllStocks();
+    List<StocksDto> getAllStocks();
 
-    public void saveCompanyInfo();
+    Optional<StockPrice> findStockDetails(String symbol);
 
-    public void saveStocksPrice();
+    void saveCompanyInfo();
+
+    void saveStocksPrice();
+
+
 
 }

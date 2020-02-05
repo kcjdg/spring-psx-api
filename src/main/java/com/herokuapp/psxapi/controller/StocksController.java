@@ -1,14 +1,19 @@
 package com.herokuapp.psxapi.controller;
 
 import com.herokuapp.psxapi.helper.LocalDateUtils;
+import com.herokuapp.psxapi.helper.StockNotFoundException;
+import com.herokuapp.psxapi.model.dao.StockPrice;
+import com.herokuapp.psxapi.model.dto.StockDetailsDto;
 import com.herokuapp.psxapi.model.dto.StocksDto;
 import com.herokuapp.psxapi.model.dto.StocksWrapper;
 import com.herokuapp.psxapi.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,9 +45,21 @@ public class StocksController {
     }
 
 
+    @GetMapping("/{symbol}/details")
+    public StocksWrapper findStockWithDetails(@PathVariable String symbol) {
+        StocksWrapper<StockDetailsDto> stocksWrapper = new StocksWrapper();
+        StockPrice stockPrice = stockService.findStockDetails(symbol).orElseThrow(StockNotFoundException::new);
+        StockDetailsDto stocksDto = new StockDetailsDto();
+        BeanUtils.copyProperties(stockPrice, stocksDto);
+        stocksWrapper.setStocks(Collections.singletonList(stocksDto));
+        stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
+        return stocksWrapper;
+    }
+
+
     private StocksWrapper wrapResults(List<StocksDto> stocks) {
         String date;
-        StocksWrapper stocksWrapper = new StocksWrapper();
+        StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper();
         Optional<StocksDto> index = stocks.stream().findFirst();
         if (index.isPresent()) {
             date = index.get().getName();

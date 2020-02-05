@@ -6,7 +6,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 public class VolumeParserUtil {
-    private static final String UNITS[] = new String[]{"K","M","B",};
+    private static final String UNITS[] = new String[]{"K","M","B","T"};
     private static final BigDecimal THOUSAND = BigDecimal.valueOf(1000);
     private static final NavigableMap<BigDecimal, String> MAP;
     static
