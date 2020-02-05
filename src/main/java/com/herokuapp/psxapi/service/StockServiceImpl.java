@@ -4,8 +4,10 @@ package com.herokuapp.psxapi.service;
 import com.herokuapp.psxapi.config.PseiConfig;
 import com.herokuapp.psxapi.model.dao.Company;
 import com.herokuapp.psxapi.model.dao.CompanyRepository;
+import com.herokuapp.psxapi.model.dao.StockPrice;
+import com.herokuapp.psxapi.model.dao.StockPriceRepository;
 import com.herokuapp.psxapi.model.dto.CompanyInfoDto;
-import com.herokuapp.psxapi.model.dto.StocksSimple;
+import com.herokuapp.psxapi.model.dto.StocksDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.spy.memcached.MemcachedClient;
@@ -28,16 +30,18 @@ public class StockServiceImpl implements StockService {
     private final PseiConfig pseiConfig;
     private final MemcachedClient memcachedClient;
     private final CompanyRepository companyRepository;
+    private final StockPriceRepository stockPriceRepository;
 
 
     @Override
-    public List<StocksSimple> getAllStocks() {
-        List<StocksSimple> stocks = (List<StocksSimple>) memcachedClient.get(pseiConfig.getCacheName());
+    public List<StocksDto> getAllStocks() {
+        List<StocksDto> stocks = (List<StocksDto>) memcachedClient.get(pseiConfig.getCacheName());
         if (stocks == null) {
             MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksTickerApiName());
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
-            ResponseEntity<List<StocksSimple>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
-                    new ParameterizedTypeReference<List<StocksSimple>>() {});
+            ResponseEntity<List<StocksDto>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
+                    new ParameterizedTypeReference<List<StocksDto>>() {
+                    });
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 memcachedClient.set(pseiConfig.getCacheName(), 60, response.getBody());
@@ -53,14 +57,14 @@ public class StockServiceImpl implements StockService {
     @Override
     public void saveCompanyInfo() {
         if (companyRepository.findAll().isEmpty()) {
-            log.info("Unable to find stocks list");
+            log.info("Unable to find stocks list. Processing the company saving");
             getAllStocks().stream().forEach(stocks -> {
                 MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksCompanyApiName());
                 param.add("start", "0");
                 param.add("limit", "1");
                 param.add("Referer", pseiConfig.getStocksUrl());
                 param.add("query", stocks.getSymbol());
-                try{
+                try {
                     HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
                     ResponseEntity<CompanyInfoDto<Company>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
                             new ParameterizedTypeReference<CompanyInfoDto<Company>>() {
@@ -68,10 +72,36 @@ public class StockServiceImpl implements StockService {
                     if (response.getStatusCode() == HttpStatus.OK) {
                         companyRepository.saveAll(response.getBody().getRecords());
                     }
-                }catch (Exception e){
-                    log.info("Unable to continue {}",e);
+                } catch (Exception e) {
+                    log.info("Unable to continue saving company info {}", e);
                 }
             });
+            log.info("Done saving company info");
+        }
+    }
+
+    @Override
+    public void saveStocksPrice() {
+        List<Company> companies = companyRepository.findAll();
+        if (!companies.isEmpty()) {
+            log.info("Start back up data .");
+            companies.stream().forEach(company -> {
+                MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
+                param.add("company", company.getSymbol());
+                param.add("security", company.getSecurityId().toString());
+                try {
+                    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
+                    ResponseEntity<CompanyInfoDto<StockPrice>> response = restTemplate.exchange(pseiConfig.getCompanyInfoUrl(), HttpMethod.POST, request,
+                            new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {
+                            });
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        stockPriceRepository.saveAll(response.getBody().getRecords());
+                    }
+                } catch (Exception e) {
+                    log.info("Unable to continue saving stocks price {}", e);
+                }
+            });
+            log.info("Done saving stock price");
         }
     }
 

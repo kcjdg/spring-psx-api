@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class StocksSimple implements Serializable {
+public class StocksDto implements Serializable {
     @JsonAlias("totalVolume")
     private String volume;
     @JsonAlias("percChangeClose")

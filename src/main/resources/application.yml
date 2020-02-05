@@ -9,10 +9,10 @@ spring:
   h2:
     console:
       enabled: true
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
 
-      
+
 server:
   port: ${PORT:8082}

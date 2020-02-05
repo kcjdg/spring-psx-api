@@ -1,7 +1,7 @@
 package com.herokuapp.psxapi.service;
 
 import com.herokuapp.psxapi.config.PseiConfig;
-import com.herokuapp.psxapi.model.dto.StocksSimple;
+import com.herokuapp.psxapi.model.dto.StocksDto;
 import net.spy.memcached.MemcachedClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +48,7 @@ public class StockServiceTest {
     public void given_memcachedAndRestemplate_when_apiCalledAndHasReturn_then_cachedResponseAndExpectAList() {
         when(memcachedClient.get(pseiConfig.getCacheName())).thenReturn(null);
         when(restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, createRequest(),
-                new ParameterizedTypeReference<List<StocksSimple>>() {
+                new ParameterizedTypeReference<List<StocksDto>>() {
                 })).thenReturn(new ResponseEntity<>(createStocks(), HttpStatus.OK));
 
         assertEquals(createStocks(), stockServiceImpl.getAllStocks());
@@ -59,29 +59,29 @@ public class StockServiceTest {
     public void given_memcachedAndRestemplate_when_apiCalledAndNotOK_then_expectEmptyList() {
         when(memcachedClient.get(pseiConfig.getCacheName())).thenReturn(null);
         when(restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, createRequest(),
-                new ParameterizedTypeReference<List<StocksSimple>>() {
+                new ParameterizedTypeReference<List<StocksDto>>() {
                 })).thenReturn(new ResponseEntity<>(createStocks(), HttpStatus.BAD_GATEWAY));
 
         assertEquals(Collections.EMPTY_LIST, stockServiceImpl.getAllStocks());
     }
 
 
-    private List<StocksSimple> createStocks() {
-        StocksSimple bdo = new StocksSimple();
+    private List<StocksDto> createStocks() {
+        StocksDto bdo = new StocksDto();
         bdo.setName("Banco de Oro");
         bdo.setPercentageChange("-2.0");
         bdo.setPrice("127.00");
         bdo.setSymbol("BDO");
         bdo.setVolume("10000");
 
-        StocksSimple bpi = new StocksSimple();
+        StocksDto bpi = new StocksDto();
         bpi.setName("Bank of the Ph");
         bpi.setPercentageChange("-2.0");
         bpi.setPrice("127.00");
         bpi.setSymbol("BPI");
         bpi.setVolume("20000");
 
-        List<StocksSimple> listOfStocks = new ArrayList<>();
+        List<StocksDto> listOfStocks = new ArrayList<>();
         listOfStocks.add(bdo);
         listOfStocks.add(bpi);
         return listOfStocks;

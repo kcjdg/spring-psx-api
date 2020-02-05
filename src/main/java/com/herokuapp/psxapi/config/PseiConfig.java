@@ -20,6 +20,7 @@ public class PseiConfig {
     private String cacheName;
     private String stocksTickerApiName;
     private String stocksCompanyApiName;
+    private String companyPriceApiName;
 
     @PostConstruct
     public void setAPIUrls() {
@@ -31,6 +32,7 @@ public class PseiConfig {
             this.cacheName = map.get("cache_stocks");
             this.stocksTickerApiName = map.get("get_stocks_api");
             this.stocksCompanyApiName = map.get("get_companyInfo_api");
+            this.companyPriceApiName = map.get("get_companyPrice_api");
         } catch (Exception e) {
             log.info("Unable to set the json config");
         }

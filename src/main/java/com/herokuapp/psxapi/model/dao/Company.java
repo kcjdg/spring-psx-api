@@ -22,7 +22,7 @@ public class Company implements Serializable {
     @Id
     private String symbol;
     private String securityStatus;
-    private String securityId;
+    private Integer securityId;
     private String securityName;
 
 }

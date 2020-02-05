@@ -13,7 +13,7 @@ public class StocksWrapper {
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "stock")
-    private List<StocksSimple> stocks;
+    private List<StocksDto> stocks;
     @JacksonXmlProperty(isAttribute = true)
     private String asOf;
 
