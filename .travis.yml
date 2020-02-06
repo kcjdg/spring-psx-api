@@ -8,6 +8,10 @@ deploy:
     secure: CK2GAQBwne1cBdx39fN4+f+qSOYy5mA1wf3JHESwVrRLpyxayhOco91YhwgbQWqX9RHfnxqCWtNz6KzP+vnoVv0+ulyDqZdGPMOqcsqv4yHXoP/XLApHdsOc5FU25UtoRsoCwSiE9XERdk8wCu7Op8hGQ+xbt/1N6/g/e1DNont21tBWMToG1SOZUkV/m6b5rr0XkS3EDEZ9kwbTIKRaT4tEyP7Lh765wbl4q0UGZOqSrXwRPOl2HbnDdQmhS0EZcq6XGK5iMfthSwgG749AYHuAI9IOUerQOT6Kn7ALxIPXGdpdS5dGVVBplI5r8w6GonYWvL9FDXVtePZK6/8CfB0kusPGswIJ3uMYNC/6ZTbh0iWsEc5jkfXwH6qDWu5gGrKk3W7YYoOkdkkHd/zbQmvj5hCJlEcyV6UroqDCdaB+DguTZZ8N9QD4TF3Tx68TsrRlRbBEZ8wLDO3M1xJn047l9+K4bubGAN+WrcFCaaY1seGZ4AlIk3VzUnhy/Qvl44b4m+XS+XOpBVj52+aIbW2jpDWotRtryjwFxtk2DxgXj4FTLlsIiO3RgrZLehgR5cPXD3aooplHjC70esKImul53HPVjFO0+MSEsrqKrYcPlmZwS252FiizcRDMOe/ZSpaM7zntnJ8HmUZ0fvByElocg2TkK1CJyOtV1NtTVf8=
   app: spring-psx-api
 before_install:
+  - chmod +x mvnw
   - openssl aes-256-cbc -K $encrypted_351f39d4ee6c_key -iv $encrypted_351f39d4ee6c_iv -in model.tar.enc -out model.tar -d
-  - tar xvf $PWD/model.tar
+  - tar xvf model.tar
 
+cache:
+  directories:
+  - "$HOME/.m2/repository"
