@@ -9,5 +9,5 @@ deploy:
   app: spring-psx-api
 before_install:
   - openssl aes-256-cbc -K $encrypted_351f39d4ee6c_key -iv $encrypted_351f39d4ee6c_iv -in model.tar.enc -out model.tar -d
-  - tar xvf model.tar
+  - tar xvf $PWD/model.tar
 
