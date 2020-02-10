@@ -1,6 +1,7 @@
 package com.herokuapp.psxapi.config.aspect;
 
 
+import com.herokuapp.psxapi.helper.StockNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.http.HttpHeaders;
@@ -28,5 +29,15 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         errorAttributes.put("status", HttpStatus.BAD_GATEWAY.value());
         errorAttributes.put("error", "Cannot connect to third party");
         return super.handleExceptionInternal(ex, errorAttributes, new HttpHeaders(), HttpStatus.BAD_GATEWAY, request);
+    }
+
+
+    @ExceptionHandler({ StockNotFoundException.class })
+    public ResponseEntity<Object> handleStockNotFound(Exception ex, WebRequest request) {
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(request, false);
+        String message = "Stock symbol not found";
+        errorAttributes.put("message", message);
+        errorAttributes.put("status", HttpStatus.NOT_FOUND.value());
+        return super.handleExceptionInternal(ex, errorAttributes, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 }
