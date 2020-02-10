@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +31,7 @@ public class StocksController {
         List<StocksDto> allStocks = stockService.getAllStocks();
         if(!ArrayUtils.isEmpty(symbols)){
             return wrapResults(allStocks.stream()
-                    .filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || ArrayUtils.contains(symbols,e.getSymbol()))
+                    .filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || Arrays.stream(symbols).anyMatch(e.getSymbol()::equalsIgnoreCase))
                     .collect(Collectors.toList()));
         }
         return wrapResults(allStocks);
@@ -40,7 +41,7 @@ public class StocksController {
     public StocksWrapper findStock(@PathVariable String symbol) {
         List<StocksDto> allStocks = stockService.getAllStocks();
         return wrapResults(allStocks.stream().
-                filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || StringUtils.equals(e.getSymbol(), symbol)).
+                filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || StringUtils.equalsAnyIgnoreCase(e.getSymbol(), symbol)).
                 collect(Collectors.toList()));
     }
 
@@ -48,7 +49,7 @@ public class StocksController {
     @GetMapping("/{symbol}/details")
     public StocksWrapper findStockWithDetails(@PathVariable String symbol) {
         StocksWrapper<StockDetailsDto> stocksWrapper = new StocksWrapper();
-        StockPrice stockPrice = stockService.findStockDetails(symbol).orElseThrow(StockNotFoundException::new);
+        StockPrice stockPrice = stockService.findStockDetails(symbol.toUpperCase()).orElseThrow(StockNotFoundException::new);
         StockDetailsDto stocksDto = new StockDetailsDto();
         BeanUtils.copyProperties(stockPrice, stocksDto);
         stocksWrapper.setStocks(Collections.singletonList(stocksDto));
