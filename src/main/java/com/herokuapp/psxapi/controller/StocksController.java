@@ -58,6 +58,12 @@ public class StocksController {
     }
 
 
+    @GetMapping("by/{date}")
+    public String findStocksByDate(@PathVariable String date) {
+        return stockService.getFirebaseData(date).orElseThrow(StockNotFoundException::new);
+    }
+
+
     private StocksWrapper wrapResults(List<StocksDto> stocks) {
         String date;
         StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper();

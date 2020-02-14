@@ -17,6 +17,9 @@ public interface StockService {
 
     void saveStocksPrice();
 
+    Optional<String> getFirebaseData(String date);
+
+    void saveStockPriceInFireBase();
 
 
 }

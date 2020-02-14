@@ -22,9 +22,14 @@ public class ScheduledTask {
     }
 
     @Scheduled(cron = "0 45 16 * * MON-FRI", zone = "GMT+8:00")
-    public void run(){
+    public void runSavingStocks(){
         stockService.saveStocksPrice();
     }
 
+
+    @Scheduled(cron = "0 00 18 * * MON-FRI", zone = "GMT+8:00")
+    public void runFireBaseBaUp(){
+        stockService.saveStockPriceInFireBase();
+    }
 
 }

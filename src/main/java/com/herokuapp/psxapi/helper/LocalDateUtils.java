@@ -10,10 +10,12 @@ public class LocalDateUtils {
     public static final String STANDARD_FORMAT_STR = "yyyy-MM-dd HH:mm:ss";
     public static final String STANDARD_FORMAT_STR2 = "yyyy-MM-dd HH:mm:ss.S";
     public static final String SIMPLE_FORMAT_STR = "MM/dd/yyyy hh:mm a";
+    public static final String DATE_FORMAT_STR = "yyyy-MM-dd";
 
     private static final DateTimeFormatter STANDARD_FORMAT = DateTimeFormatter.ofPattern(STANDARD_FORMAT_STR);
     private static final DateTimeFormatter STANDARD_FORMAT2 = DateTimeFormatter.ofPattern(STANDARD_FORMAT_STR2);
     private static final DateTimeFormatter SIMPLE_FORMAT = DateTimeFormatter.ofPattern(SIMPLE_FORMAT_STR);
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_FORMAT_STR);
 
 
     public static LocalDateTime now() {
@@ -25,10 +27,15 @@ public class LocalDateUtils {
         return asiaManilaTime(localDateTime).format(STANDARD_FORMAT);
     }
 
+    public static String convertToDateFormatOnly(LocalDateTime localDateTime){
+        return asiaManilaTime(localDateTime).format(DATE_FORMAT);
+    }
+
     public static String convertToStandardFormat(String date) {
         LocalDateTime parse = LocalDateTime.parse(date, SIMPLE_FORMAT);
         return formatToStandardTimeAsString(parse);
     }
+
 
 
     private static LocalDateTime asiaManilaTime(LocalDateTime localTime){

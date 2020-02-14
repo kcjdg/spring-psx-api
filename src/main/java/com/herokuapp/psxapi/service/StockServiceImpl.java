@@ -2,12 +2,14 @@ package com.herokuapp.psxapi.service;
 
 
 import com.herokuapp.psxapi.config.PseiConfig;
+import com.herokuapp.psxapi.helper.LocalDateUtils;
 import com.herokuapp.psxapi.model.dao.Company;
 import com.herokuapp.psxapi.model.dao.CompanyRepository;
 import com.herokuapp.psxapi.model.dao.StockPrice;
 import com.herokuapp.psxapi.model.dao.StockPriceRepository;
 import com.herokuapp.psxapi.model.dto.CompanyInfoDto;
 import com.herokuapp.psxapi.model.dto.StocksDto;
+import com.herokuapp.psxapi.model.dto.StocksWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.spy.memcached.MemcachedClient;
@@ -98,6 +100,8 @@ public class StockServiceImpl implements StockService {
     }
 
 
+
+
     @Override
     public Optional<StockPrice> findStockDetails(String symbol) {
         Optional<Company> companyOptional = companyRepository.findById(symbol);
@@ -107,6 +111,30 @@ public class StockServiceImpl implements StockService {
         }
         return Optional.empty();
     }
+
+
+
+    @Override
+    public Optional<String> getFirebaseData(String date){
+        String firebaseResponse = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", String.class, date, pseiConfig.getFirebaseToken());
+        return Optional.ofNullable(firebaseResponse);
+    }
+
+
+
+    @Override
+    public void saveStockPriceInFireBase(){
+        try {
+            List<StocksDto> allStocks = getAllStocks();
+            restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", wrapResults(allStocks),
+                    LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
+        }catch (Exception e){
+            log.info("Unable to put list due to {}", e);
+            saveStocksPrice();
+        }
+
+    }
+
 
     private List<StockPrice> fetchStockDetails(String symbol, String securityId){
         MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
@@ -134,5 +162,22 @@ public class StockServiceImpl implements StockService {
         map.add("method", method);
         map.add("ajax", "true");
         return map;
+    }
+
+
+
+    private StocksWrapper wrapResults(List<StocksDto> stocks) {
+        String date;
+        StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper();
+        Optional<StocksDto> index = stocks.stream().findFirst();
+        if (index.isPresent()) {
+            date = index.get().getName();
+            stocks.remove(0);
+        } else {
+            date = LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now());
+        }
+        stocksWrapper.setAsOf(LocalDateUtils.convertToStandardFormat(date));
+        stocksWrapper.setStocks(stocks);
+        return stocksWrapper;
     }
 }
