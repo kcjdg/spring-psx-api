@@ -9,12 +9,10 @@ deploy:
   app: spring-psx-api
   skip_cleanup: true
 before_install:
-- openssl aes-256-cbc -K $encrypted_351f39d4ee6c_key -iv $encrypted_351f39d4ee6c_iv
-  -in model.tar.enc -out model.tar -d
 - chmod +x mvnw
-- tar xvf model.tar
-- openssl aes-256-cbc -k "$firebase_private" -in credentials.enc -out firebaseauth.json
-  -d
+- openssl aes-256-cbc -K $encrypted_351f39d4ee6c_key -iv $encrypted_351f39d4ee6c_iv
+  -in secrets.tar.enc -out secrets.tar -d
+- tar xvf secrets.tar
 cache:
   directories:
   - "$HOME/.m2/repository"
