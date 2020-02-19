@@ -15,4 +15,4 @@ before_install:
 - tar xvf secrets.tar
 cache:
   directories:
-  - "$HOME/.m2/repository"
+  - "$HOME/.m2/"
