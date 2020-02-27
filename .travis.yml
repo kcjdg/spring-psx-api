@@ -9,9 +9,9 @@ deploy:
   app: spring-psx-api
   skip_cleanup: true
 before_install:
-- chmod +x mvnw
 - openssl aes-256-cbc -K $encrypted_351f39d4ee6c_key -iv $encrypted_351f39d4ee6c_iv
   -in secrets.tar.enc -out secrets.tar -d
+- chmod +x mvnw
 - tar xvf secrets.tar
 cache:
   directories:

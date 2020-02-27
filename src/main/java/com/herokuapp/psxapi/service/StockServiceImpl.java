@@ -4,15 +4,13 @@ package com.herokuapp.psxapi.service;
 import com.herokuapp.psxapi.config.PseiConfig;
 import com.herokuapp.psxapi.helper.LocalDateUtils;
 import com.herokuapp.psxapi.model.dao.Company;
-import com.herokuapp.psxapi.model.dao.CompanyRepository;
 import com.herokuapp.psxapi.model.dao.StockPrice;
-import com.herokuapp.psxapi.model.dao.StockPriceRepository;
 import com.herokuapp.psxapi.model.dto.CompanyInfoDto;
 import com.herokuapp.psxapi.model.dto.StocksDto;
-import com.herokuapp.psxapi.model.dto.StocksWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.spy.memcached.MemcachedClient;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -20,9 +18,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +28,6 @@ public class StockServiceImpl implements StockService {
     private final RestTemplate restTemplate;
     private final PseiConfig pseiConfig;
     private final MemcachedClient memcachedClient;
-    private final CompanyRepository companyRepository;
-    private final StockPriceRepository stockPriceRepository;
-
 
     @Override
     public List<StocksDto> getAllStocks() {
@@ -58,97 +51,119 @@ public class StockServiceImpl implements StockService {
 
 
     @Override
-    public void saveCompanyInfo() {
-        if (companyRepository.findAll().isEmpty()) {
-            log.info("Unable to find stocks list. Processing the company saving");
-            getAllStocks().stream().forEach(stocks -> {
-                MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksCompanyApiName());
-                param.add("start", "0");
-                param.add("limit", "1");
-                param.add("Referer", pseiConfig.getStocksUrl());
-                param.add("query", stocks.getSymbol());
-                try {
-                    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
-                    ResponseEntity<CompanyInfoDto<Company>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
-                            new ParameterizedTypeReference<CompanyInfoDto<Company>>() {
-                            });
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        companyRepository.saveAll(response.getBody().getRecords());
-                    }
-                } catch (Exception e) {
-                    log.info("Unable to continue saving company info {}", e);
+    public List<Company> queryAllCompanyInfo() {
+        List<Company> companies = new ArrayList<>();
+        getAllStocks().stream().forEach(stocks -> {
+            MultiValueMap<String, String> param = createMultiMap(pseiConfig.getStocksCompanyApiName());
+            param.add("start", "0");
+            param.add("limit", "1");
+            param.add("Referer", pseiConfig.getStocksUrl());
+            param.add("query", stocks.getSymbol());
+            try {
+                HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
+                ResponseEntity<CompanyInfoDto<Company>> response = restTemplate.exchange(pseiConfig.getStocksUrl(), HttpMethod.POST, request,
+                        new ParameterizedTypeReference<CompanyInfoDto<Company>>() {
+                        });
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    companies.addAll(response.getBody().getRecords());
                 }
-            });
-            log.info("Done saving company info");
-        }
+            } catch (Exception e) {
+                log.info("Unable to continue saving company info {}", e);
+            }
+        });
+        return companies;
     }
+
+
 
     @Override
     public void saveStocksPrice() {
-        List<Company> companies = companyRepository.findAll();
-        if (!companies.isEmpty()) {
-            log.info("Start back up data .");
-            companies.stream().forEach(company -> {
-                try {
-                    stockPriceRepository.saveAll(fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()));
-                } catch (Exception e) {
-                    log.info("Unable to continue saving stocks price {}", e);
+        try {
+            List<StockPrice> stockPrices = new ArrayList<>();
+            Company[] companies = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken());
+            log.info("Companies count {}", companies.length);
+            if (companies.length > 0) {
+                for (Company company : companies) {
+                    try {
+                        List<StockPrice> listStockPrice = fetchStockDetails(company.getSymbol(), company.getSecurityId().toString());
+                        stockPrices.addAll(listStockPrice);
+                    } catch (Exception e) {
+                        log.info("Unable to continue saving stocks price {}", e);
+                    }
                 }
-            });
-            log.info("Done saving stock price");
+                restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", stockPrices,
+                        LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            log.info("Unable to process request");
         }
     }
 
 
+    @Override
+    public List<StockPrice> getFirebaseData(String date){
+        ParameterizedTypeReference<List<StockPrice>> responseType = new ParameterizedTypeReference<List<StockPrice>>() {};
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, createHttpHeaders());
+        final ResponseEntity<List<StockPrice>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", HttpMethod.GET, request, responseType, date,pseiConfig.getFirebaseToken());
+        if(exchange.getStatusCode() == HttpStatus.OK){
+            return exchange.getBody();
+        }
+        return Collections.EMPTY_LIST;
+    }
 
 
     @Override
     public Optional<StockPrice> findStockDetails(String symbol) {
-        Optional<Company> companyOptional = companyRepository.findById(symbol);
-        if(companyOptional.isPresent()){
-            Company company = companyOptional.get();
+        Company[] companies = Optional.ofNullable((Company[])memcachedClient.get("companies_cache")).orElse(restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken()));
+        if(companies.length > 0){
+            memcachedClient.set("companies_cache", 60*60*24, companies);
+            final Optional<Company> companyOpt = Arrays.stream(companies).filter(stks -> StringUtils.equalsIgnoreCase(stks.getSymbol(), symbol)).findFirst();
+            Company company = companyOpt.get();
             return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
         }
         return Optional.empty();
     }
 
-
-
-    @Override
-    public Optional<String> getFirebaseData(String date){
-        String firebaseResponse = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", String.class, date, pseiConfig.getFirebaseToken());
-        return Optional.ofNullable(firebaseResponse);
-    }
-
-
-
-    @Override
-    public void saveStockPriceInFireBase(){
-        try {
-            List<StocksDto> allStocks = getAllStocks();
-            restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", wrapResults(allStocks),
-                    LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
-        }catch (Exception e){
-            log.info("Unable to put list due to {}", e);
-            saveStocksPrice();
-        }
-
-    }
-
-
+//
+//
+//    @Override
+//    public Optional<String> getFirebaseData(String date){
+//        String firebaseResponse = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", String.class, date, pseiConfig.getFirebaseToken());
+//        return Optional.ofNullable(firebaseResponse);
+//    }
+//
+//
+//
+//    @Override
+//    public void saveStockPriceInFireBase(){
+//        try {
+//            List<StocksDto> allStocks = getAllStocks();
+//            restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", wrapResults(allStocks),
+//                    LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
+//        }catch (Exception e){
+//            log.info("Unable to put list due to {}", e);
+//            saveStocksPrice();
+//        }
+//
+//    }
+//
+//
     private List<StockPrice> fetchStockDetails(String symbol, String securityId){
         MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
         param.add("company", symbol);
         param.add("security", securityId);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
         ResponseEntity<CompanyInfoDto<StockPrice>> response = restTemplate.exchange(pseiConfig.getCompanyInfoUrl(), HttpMethod.POST, request,
-                new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {
-                });
+                new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {});
         if (response.getStatusCode() == HttpStatus.OK) {
             return response.getBody().getRecords();
         }
         return Collections.EMPTY_LIST;
     }
+
+
 
     private HttpHeaders createHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
@@ -165,19 +180,4 @@ public class StockServiceImpl implements StockService {
     }
 
 
-
-    private StocksWrapper wrapResults(List<StocksDto> stocks) {
-        String date;
-        StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper();
-        Optional<StocksDto> index = stocks.stream().findFirst();
-        if (index.isPresent()) {
-            date = index.get().getName();
-            stocks.remove(0);
-        } else {
-            date = LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now());
-        }
-        stocksWrapper.setAsOf(LocalDateUtils.convertToStandardFormat(date));
-        stocksWrapper.setStocks(stocks);
-        return stocksWrapper;
-    }
 }

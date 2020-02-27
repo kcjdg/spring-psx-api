@@ -48,6 +48,10 @@ public class LocalDateUtils {
         return asiaManilaTime(LocalDateTime.parse(time, STANDARD_FORMAT2));
     }
 
+    public static LocalDateTime convertToLocalDateTimeUsingStandardFormat(String time){
+        return asiaManilaTime(LocalDateTime.parse(time, STANDARD_FORMAT));
+    }
+
 
 
 }

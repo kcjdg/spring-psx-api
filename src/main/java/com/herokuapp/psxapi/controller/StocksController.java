@@ -3,14 +3,12 @@ package com.herokuapp.psxapi.controller;
 import com.herokuapp.psxapi.helper.LocalDateUtils;
 import com.herokuapp.psxapi.helper.StockNotFoundException;
 import com.herokuapp.psxapi.model.dao.StockPrice;
-import com.herokuapp.psxapi.model.dto.StockDetailsDto;
 import com.herokuapp.psxapi.model.dto.StocksDto;
 import com.herokuapp.psxapi.model.dto.StocksWrapper;
 import com.herokuapp.psxapi.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -29,7 +27,7 @@ public class StocksController {
     @GetMapping("")
     public StocksWrapper getStocks(@RequestParam(required = false) String... symbols) {
         List<StocksDto> allStocks = stockService.getAllStocks();
-        if(!ArrayUtils.isEmpty(symbols)){
+        if (!ArrayUtils.isEmpty(symbols)) {
             return wrapResults(allStocks.stream()
                     .filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || Arrays.stream(symbols).anyMatch(e.getSymbol()::equalsIgnoreCase))
                     .collect(Collectors.toList()));
@@ -48,20 +46,33 @@ public class StocksController {
 
     @GetMapping("/{symbol}/details")
     public StocksWrapper findStockWithDetails(@PathVariable String symbol) {
-        StocksWrapper<StockDetailsDto> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         StockPrice stockPrice = stockService.findStockDetails(symbol.toUpperCase()).orElseThrow(StockNotFoundException::new);
-        StockDetailsDto stocksDto = new StockDetailsDto();
-        BeanUtils.copyProperties(stockPrice, stocksDto);
-        stocksWrapper.setStocks(Collections.singletonList(stocksDto));
+        stocksWrapper.setStocks(Collections.singletonList(stockPrice));
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
         return stocksWrapper;
     }
 
 
     @GetMapping("by/{date}")
-    public String findStocksByDate(@PathVariable String date) {
-        return stockService.getFirebaseData(date).orElseThrow(StockNotFoundException::new);
+    public StocksWrapper findStocksByDate(@PathVariable String date) {
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        List<StockPrice> firebaseData = stockService.getFirebaseData(date);
+        stocksWrapper.setStocks(firebaseData);
+        stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
+        return stocksWrapper;
     }
+
+
+    @GetMapping("by/{date}/{symbol}")
+    public StocksWrapper findStocksByDateAndSymbol(@PathVariable String date, @PathVariable String symbol) {
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        List<StockPrice> firebaseData = stockService.getFirebaseData(date).stream().filter(stks->StringUtils.equalsIgnoreCase(symbol,stks.getSymbol())).collect(Collectors.toList());
+        stocksWrapper.setStocks(firebaseData);
+        stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
+        return stocksWrapper;
+    }
+
 
 
     private StocksWrapper wrapResults(List<StocksDto> stocks) {
@@ -78,8 +89,6 @@ public class StocksController {
         stocksWrapper.setStocks(stocks);
         return stocksWrapper;
     }
-
-
 
 
 }

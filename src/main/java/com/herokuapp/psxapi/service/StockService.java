@@ -1,6 +1,7 @@
 package com.herokuapp.psxapi.service;
 
 
+import com.herokuapp.psxapi.model.dao.Company;
 import com.herokuapp.psxapi.model.dao.StockPrice;
 import com.herokuapp.psxapi.model.dto.StocksDto;
 
@@ -11,15 +12,11 @@ public interface StockService {
 
     List<StocksDto> getAllStocks();
 
-    Optional<StockPrice> findStockDetails(String symbol);
-
-    void saveCompanyInfo();
+    List<Company> queryAllCompanyInfo();
 
     void saveStocksPrice();
 
-    Optional<String> getFirebaseData(String date);
+    List<StockPrice> getFirebaseData(String date);
 
-    void saveStockPriceInFireBase();
-
-
+    Optional<StockPrice> findStockDetails(String symbol);
 }
