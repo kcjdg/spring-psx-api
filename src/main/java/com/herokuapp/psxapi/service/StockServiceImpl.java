@@ -126,30 +126,9 @@ public class StockServiceImpl implements StockService {
         return Optional.empty();
     }
 
-//
-//
-//    @Override
-//    public Optional<String> getFirebaseData(String date){
-//        String firebaseResponse = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", String.class, date, pseiConfig.getFirebaseToken());
-//        return Optional.ofNullable(firebaseResponse);
-//    }
-//
-//
-//
-//    @Override
-//    public void saveStockPriceInFireBase(){
-//        try {
-//            List<StocksDto> allStocks = getAllStocks();
-//            restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", wrapResults(allStocks),
-//                    LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
-//        }catch (Exception e){
-//            log.info("Unable to put list due to {}", e);
-//            saveStocksPrice();
-//        }
-//
-//    }
-//
-//
+
+
+
     private List<StockPrice> fetchStockDetails(String symbol, String securityId){
         MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
         param.add("company", symbol);
@@ -162,7 +141,6 @@ public class StockServiceImpl implements StockService {
         }
         return Collections.EMPTY_LIST;
     }
-
 
 
     private HttpHeaders createHttpHeaders() {
