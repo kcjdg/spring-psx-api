@@ -2,7 +2,7 @@ package com.herokuapp.psxapi.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.auth.oauth2.GoogleCredentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -52,17 +52,17 @@ public class PseiConfig {
         try {
             FileInputStream serviceAccount = new FileInputStream("firebaseauth.json");
             // Authenticate a Google credential with the service account
-            GoogleCredential googleCred = GoogleCredential.fromStream(serviceAccount);
+            GoogleCredentials googleCred = GoogleCredentials.fromStream(serviceAccount);
             // Add the required scopes to the Google credential
-            GoogleCredential scoped = googleCred.createScoped(
+            GoogleCredentials scoped = googleCred.createScoped(
                     Arrays.asList(
                             "https://www.googleapis.com/auth/firebase.database",
                             "https://www.googleapis.com/auth/userinfo.email"
                     )
             );
             // Use the Google credential to generate an access token
-            scoped.refreshToken();
-            firebaseToken = scoped.getAccessToken();
+            scoped.refreshAccessToken();
+            firebaseToken = scoped.refreshAccessToken().getTokenValue();
             log.info("generated new token.. {}", firebaseToken);
         }catch (Exception e){
             e.printStackTrace();

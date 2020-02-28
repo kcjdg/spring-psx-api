@@ -35,12 +35,11 @@ public class MemcachedClientConfig {
         try {
             AuthDescriptor ad = new AuthDescriptor(new String[]{"PLAIN"},
                     new PlainCallbackHandler(System.getenv("MEMCACHEDCLOUD_USERNAME"), System.getenv("MEMCACHEDCLOUD_PASSWORD")));
-            MemcachedClient mc = new MemcachedClient(
+           return new MemcachedClient(
                     new ConnectionFactoryBuilder()
                             .setProtocol(ConnectionFactoryBuilder.Protocol.BINARY)
                             .setAuthDescriptor(ad).build(),
                     AddrUtil.getAddresses(System.getenv("MEMCACHEDCLOUD_SERVERS")));
-            return mc;
         } catch (Exception e) {
             log.info("Unable to initialize prod memcached.");
         }

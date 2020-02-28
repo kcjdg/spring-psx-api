@@ -18,6 +18,10 @@ public class LocalDateUtils {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(DATE_FORMAT_STR);
 
 
+    private LocalDateUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static LocalDateTime now() {
         return asiaManilaTime(LocalDateTime.now());
     }

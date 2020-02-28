@@ -37,7 +37,7 @@ public class RestTemplateConfig {
 
     private MappingJackson2HttpMessageConverter messageConverter(){
         MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
-        mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.TEXT_HTML, MediaType.APPLICATION_JSON}));
+        mappingJackson2HttpMessageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_HTML, MediaType.APPLICATION_JSON));
         return mappingJackson2HttpMessageConverter;
     }
 

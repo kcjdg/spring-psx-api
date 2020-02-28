@@ -43,7 +43,7 @@ public class StockServiceImpl implements StockService {
                 memcachedClient.set(pseiConfig.getCacheName(), 60, response.getBody());
                 return response.getBody();
             } else {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
         }
         return stocks;
@@ -75,50 +75,45 @@ public class StockServiceImpl implements StockService {
     }
 
 
-
     @Override
     public void saveStocksPrice() {
-        try {
-            List<StockPrice> stockPrices = new ArrayList<>();
-            Company[] companies = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken());
-            log.info("Companies count {}", companies.length);
-            if (companies.length > 0) {
-                for (Company company : companies) {
-                    try {
-                        List<StockPrice> listStockPrice = fetchStockDetails(company.getSymbol(), company.getSecurityId().toString());
-                        stockPrices.addAll(listStockPrice);
-                    } catch (Exception e) {
-                        log.info("Unable to continue saving stocks price {}", e);
-                    }
+        List<StockPrice> stockPrices = new ArrayList<>();
+        Company[] companies = restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken());
+        log.info("Companies count {} ", companies.length);
+        if (companies.length > 0) {
+            for (Company company : companies) {
+                try {
+                    List<StockPrice> listStockPrice = fetchStockDetails(company.getSymbol(), company.getSecurityId().toString());
+                    stockPrices.addAll(listStockPrice);
+                } catch (Exception e) {
+                    log.info("Unable to continue saving stocks price {}", e);
                 }
-                restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", stockPrices,
-                        LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
             }
-        }catch (Exception e){
-            e.printStackTrace();
-            log.info("Unable to process request");
+            restTemplate.put(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", stockPrices,
+                    LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()), pseiConfig.getFirebaseToken());
         }
     }
 
 
     @Override
-    public List<StockPrice> getFirebaseData(String date){
-        ParameterizedTypeReference<List<StockPrice>> responseType = new ParameterizedTypeReference<List<StockPrice>>() {};
+    public List<StockPrice> getFirebaseData(String date) {
+        ParameterizedTypeReference<List<StockPrice>> responseType = new ParameterizedTypeReference<List<StockPrice>>() {
+        };
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, createHttpHeaders());
-        final ResponseEntity<List<StockPrice>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", HttpMethod.GET, request, responseType, date,pseiConfig.getFirebaseToken());
-        if(exchange.getStatusCode() == HttpStatus.OK){
+        final ResponseEntity<List<StockPrice>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", HttpMethod.GET, request, responseType, date, pseiConfig.getFirebaseToken());
+        if (exchange.getStatusCode() == HttpStatus.OK) {
             return exchange.getBody();
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
 
     @Override
     public Optional<StockPrice> findStockDetails(String symbol) {
-        Company[] companies = Optional.ofNullable((Company[])memcachedClient.get("companies_cache")).orElse(restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken()));
-        if(companies.length > 0){
-            memcachedClient.set("companies_cache", 60*60*24, companies);
+        Company[] companies = Optional.ofNullable((Company[]) memcachedClient.get("companies_cache")).orElse(restTemplate.getForObject(pseiConfig.getFirebaseApi() + "/companies.json?access_token={token}", Company[].class, pseiConfig.getFirebaseToken()));
+        if (companies.length > 0) {
+            memcachedClient.set("companies_cache", 60 * 60 * 24, companies);
             final Optional<Company> companyOpt = Arrays.stream(companies).filter(stks -> StringUtils.equalsIgnoreCase(stks.getSymbol(), symbol)).findFirst();
             Company company = companyOpt.get();
             return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
@@ -127,19 +122,18 @@ public class StockServiceImpl implements StockService {
     }
 
 
-
-
-    private List<StockPrice> fetchStockDetails(String symbol, String securityId){
+    private List<StockPrice> fetchStockDetails(String symbol, String securityId) {
         MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());
         param.add("company", symbol);
         param.add("security", securityId);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(param, createHttpHeaders());
         ResponseEntity<CompanyInfoDto<StockPrice>> response = restTemplate.exchange(pseiConfig.getCompanyInfoUrl(), HttpMethod.POST, request,
-                new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {});
+                new ParameterizedTypeReference<CompanyInfoDto<StockPrice>>() {
+                });
         if (response.getStatusCode() == HttpStatus.OK) {
             return response.getBody().getRecords();
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
 

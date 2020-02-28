@@ -77,7 +77,7 @@ public class StocksController {
     public StocksWrapper filterTopStocksByValueOf10M(@PathVariable String date) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
-        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> Double.valueOf(prc.getPercentageClose()));
+        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
         Integer limit = 20;
 
         List<StockPrice> firebaseData = stockService.getFirebaseData(date);

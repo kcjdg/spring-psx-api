@@ -23,21 +23,21 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler({ SocketTimeoutException.class })
     public ResponseEntity<Object> handleSocketTimeOut(Exception ex, WebRequest request) {
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(request, false);
+        Map<String, Object> errorMap = this.errorAttributes.getErrorAttributes(request, false);
         String message = "Connection timeOut";
-        errorAttributes.put("message", message);
-        errorAttributes.put("status", HttpStatus.BAD_GATEWAY.value());
-        errorAttributes.put("error", "Cannot connect to third party");
-        return super.handleExceptionInternal(ex, errorAttributes, new HttpHeaders(), HttpStatus.BAD_GATEWAY, request);
+        errorMap.put("message", message);
+        errorMap.put("status", HttpStatus.BAD_GATEWAY.value());
+        errorMap.put("error", "Cannot connect to third party");
+        return super.handleExceptionInternal(ex, errorMap, new HttpHeaders(), HttpStatus.BAD_GATEWAY, request);
     }
 
 
     @ExceptionHandler({ StockNotFoundException.class })
     public ResponseEntity<Object> handleStockNotFound(Exception ex, WebRequest request) {
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(request, false);
+        Map<String, Object> errorMap = this.errorAttributes.getErrorAttributes(request, false);
         String message = "Stock symbol not found";
-        errorAttributes.put("message", message);
-        errorAttributes.put("status", HttpStatus.NOT_FOUND.value());
-        return super.handleExceptionInternal(ex, errorAttributes, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+        errorMap.put("message", message);
+        errorMap.put("status", HttpStatus.NOT_FOUND.value());
+        return super.handleExceptionInternal(ex, errorMap, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 }
