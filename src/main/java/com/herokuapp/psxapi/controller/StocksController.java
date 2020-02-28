@@ -11,11 +11,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/stocks")
@@ -72,6 +71,33 @@ public class StocksController {
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
         return stocksWrapper;
     }
+
+
+    @GetMapping("by/{date}/watch")
+    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable String date) {
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
+        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> Double.valueOf(prc.getPercentageClose()));
+        Integer limit = 20;
+
+        List<StockPrice> firebaseData = stockService.getFirebaseData(date);
+        List<StockPrice> topGainers = firebaseData.stream()
+                .sorted(comparatorByPercentageClose.reversed())
+                .limit(limit)
+                .filter(valueFilter)
+                .collect(Collectors.toList());
+
+        List<StockPrice> topLosers = firebaseData.stream()
+                .sorted(comparatorByPercentageClose)
+                .limit(limit)
+                .filter(valueFilter)
+                .collect(Collectors.toList());
+
+        stocksWrapper.setStocks(Stream.of(topGainers,topLosers).flatMap(stcPrice->stcPrice.stream()).collect(Collectors.toList()));
+        stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
+        return stocksWrapper;
+    }
+
 
 
 
