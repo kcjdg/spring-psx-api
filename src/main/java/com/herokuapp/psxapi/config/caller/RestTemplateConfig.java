@@ -10,7 +10,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 
 @Configuration
@@ -24,7 +23,6 @@ public class RestTemplateConfig {
         RestTemplate restTemplate = new RestTemplate(requestFactory());
         restTemplate.getMessageConverters().add(0,new StringHttpMessageConverter());
         restTemplate.getMessageConverters().add(1,messageConverter());
-        restTemplate.setInterceptors(Collections.singletonList(new LoggingClientHttpRequestInterceptor()));
         return restTemplate;
     }
 

@@ -41,8 +41,7 @@ public class PseiConfig {
             this.companyPriceApiName = map.get("get_companyPrice_api");
             this.firebaseApi = map.get("firebase_api");
         } catch (Exception e) {
-            e.printStackTrace();
-            log.info("Unable to set the json config " +e.getStackTrace());
+            log.info("Unable to set the json config {}", e);
         }
     }
 
@@ -65,7 +64,7 @@ public class PseiConfig {
             firebaseToken = scoped.refreshAccessToken().getTokenValue();
             log.info("generated new token.. {}", firebaseToken);
         }catch (Exception e){
-            e.printStackTrace();
+            log.info("Unable to refresh firebase auth {}", e);
         }
     }
 }

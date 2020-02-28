@@ -115,8 +115,10 @@ public class StockServiceImpl implements StockService {
         if (companies.length > 0) {
             memcachedClient.set("companies_cache", 60 * 60 * 24, companies);
             final Optional<Company> companyOpt = Arrays.stream(companies).filter(stks -> StringUtils.equalsIgnoreCase(stks.getSymbol(), symbol)).findFirst();
-            Company company = companyOpt.get();
-            return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
+            if(companyOpt.isPresent()) {
+                Company company = companyOpt.get();
+                return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
+            }
         }
         return Optional.empty();
     }
