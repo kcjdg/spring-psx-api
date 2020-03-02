@@ -114,11 +114,15 @@ public class StockServiceImpl implements StockService {
     @Override
     public Optional<String> queryLastDate() {
         ParameterizedTypeReference<HashMap<String, String>> responseType =
-                new ParameterizedTypeReference<HashMap<String, String>>() {};
+                new ParameterizedTypeReference<HashMap<String, String>>() {
+                };
         final ResponseEntity<HashMap<String, String>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/.json?shallow=true&access_token={token}", HttpMethod.GET, null, responseType, pseiConfig.getFirebaseToken());
-        if(exchange.getStatusCode() == HttpStatus.OK) {
+        if (exchange.getStatusCode() == HttpStatus.OK) {
             Set<Map.Entry<String, String>> entries = exchange.getBody().entrySet();
-            return Optional.ofNullable(entries.stream().skip(entries.size() - 1 ).findFirst().get().getKey());
+            Optional<Map.Entry<String, String>> entryOpt = entries.stream().skip((long) entries.size()).findFirst();
+            if (entryOpt.isPresent()) {
+                return Optional.ofNullable(entryOpt.get().getKey());
+            }
         }
         return Optional.empty();
     }

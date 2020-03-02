@@ -74,27 +74,27 @@ public class StocksController {
 
 
     @GetMapping({"by/{date}/watch", "watch"})
-    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) String date) {
+    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
         Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
-        Integer limit = 20;
+        Integer currentLimit = limit.isPresent() ? limit.get() : 15;
+        String availableDate = date.isPresent() ? date.get() : stockService.queryLastDate().orElse(LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()));
+        List<StockPrice> firebaseData = stockService.getFirebaseData(availableDate);
 
-        date = StringUtils.isEmpty(date) ? stockService.queryLastDate().orElse(LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now())) : date;
-        List<StockPrice> firebaseData = stockService.getFirebaseData(date);
         List<StockPrice> topGainers = firebaseData.stream()
                 .sorted(comparatorByPercentageClose.reversed())
-                .limit(limit)
+                .limit(currentLimit)
                 .filter(valueFilter)
                 .collect(Collectors.toList());
 
         List<StockPrice> topLosers = firebaseData.stream()
                 .sorted(comparatorByPercentageClose)
-                .limit(limit)
+                .limit(currentLimit)
                 .filter(valueFilter)
                 .collect(Collectors.toList());
 
-        stocksWrapper.setStocks(Stream.of(topGainers,topLosers).flatMap(stcPrice->stcPrice.stream()).collect(Collectors.toList()));
+        stocksWrapper.setStocks(Stream.concat(topGainers.stream(), topLosers.stream()) .collect(Collectors.toList()));
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
         return stocksWrapper;
     }
