@@ -14,7 +14,7 @@ public class ScheduledTask {
 
     private final StockService stockService;
 
-    @Scheduled(cron = "0 45 16 * * MON-FRI", zone = "GMT+8:00")
+    @Scheduled(cron = "0 30 15 * * MON-FRI", zone = "GMT+8:00")
     public void runSavingStocks(){
         log.info("Running firebase backup..");
         stockService.saveStocksPrice();
