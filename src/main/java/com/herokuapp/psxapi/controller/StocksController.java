@@ -73,13 +73,14 @@ public class StocksController {
     }
 
 
-    @GetMapping("by/{date}/watch")
-    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable String date) {
+    @GetMapping({"by/{date}/watch", "watch"})
+    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) String date) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
         Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
         Integer limit = 20;
 
+        date = StringUtils.isEmpty(date) ? stockService.queryLastDate().orElse(LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now())) : date;
         List<StockPrice> firebaseData = stockService.getFirebaseData(date);
         List<StockPrice> topGainers = firebaseData.stream()
                 .sorted(comparatorByPercentageClose.reversed())

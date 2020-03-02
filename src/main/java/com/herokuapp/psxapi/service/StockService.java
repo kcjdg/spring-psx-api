@@ -18,5 +18,7 @@ public interface StockService {
 
     List<StockPrice> getFirebaseData(String date);
 
+    Optional<String> queryLastDate();
+
     Optional<StockPrice> findStockDetails(String symbol);
 }

@@ -103,9 +103,24 @@ public class StockServiceImpl implements StockService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, createHttpHeaders());
         final ResponseEntity<List<StockPrice>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", HttpMethod.GET, request, responseType, date, pseiConfig.getFirebaseToken());
         if (exchange.getStatusCode() == HttpStatus.OK) {
-            return exchange.getBody();
+            if (exchange.getBody() != null) {
+                return exchange.getBody();
+            }
         }
         return Collections.emptyList();
+    }
+
+
+    @Override
+    public Optional<String> queryLastDate() {
+        ParameterizedTypeReference<HashMap<String, String>> responseType =
+                new ParameterizedTypeReference<HashMap<String, String>>() {};
+        final ResponseEntity<HashMap<String, String>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/.json?shallow=true&access_token={token}", HttpMethod.GET, null, responseType, pseiConfig.getFirebaseToken());
+        if(exchange.getStatusCode() == HttpStatus.OK) {
+            Set<Map.Entry<String, String>> entries = exchange.getBody().entrySet();
+            return Optional.ofNullable(entries.stream().skip(entries.size() - 1 ).findFirst().get().getKey());
+        }
+        return Optional.empty();
     }
 
 
@@ -115,7 +130,7 @@ public class StockServiceImpl implements StockService {
         if (companies.length > 0) {
             memcachedClient.set("companies_cache", 60 * 60 * 24, companies);
             final Optional<Company> companyOpt = Arrays.stream(companies).filter(stks -> StringUtils.equalsIgnoreCase(stks.getSymbol(), symbol)).findFirst();
-            if(companyOpt.isPresent()) {
+            if (companyOpt.isPresent()) {
                 Company company = companyOpt.get();
                 return fetchStockDetails(company.getSymbol(), company.getSecurityId().toString()).stream().findFirst();
             }
