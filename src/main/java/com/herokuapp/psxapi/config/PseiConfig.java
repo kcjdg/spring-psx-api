@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -18,7 +20,8 @@ import java.util.Map;
 @Configuration
 @Slf4j
 public class PseiConfig {
-
+    @Value("${BLUE_CHIPS}")
+    private List<String> blueChips;
     private String stocksUrl;
     private String companyInfoUrl;
     private String cacheName;
@@ -45,14 +48,11 @@ public class PseiConfig {
         }
     }
 
-
     @Scheduled(fixedRate = 60 * 60 * 1000)
     public void refreshFirebaseAuth(){
         try {
             FileInputStream serviceAccount = new FileInputStream("firebaseauth.json");
-            // Authenticate a Google credential with the service account
             GoogleCredentials googleCred = GoogleCredentials.fromStream(serviceAccount);
-            // Add the required scopes to the Google credential
             GoogleCredentials scoped = googleCred.createScoped(
                     Arrays.asList(
                             "https://www.googleapis.com/auth/firebase.database",
@@ -67,4 +67,6 @@ public class PseiConfig {
             log.info("Unable to refresh firebase auth {}", e);
         }
     }
+
+
 }
