@@ -19,6 +19,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -142,6 +145,34 @@ public class StockServiceImpl implements StockService {
         return Optional.empty();
     }
 
+
+    @Override
+    public List<StockPrice> filterWatchList(String date, Integer limit) {
+        List<StockPrice> firebaseData = getFirebaseData(date);
+        Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
+        Predicate<StockPrice> blueChipsFilter = prc-> !pseiConfig.getBlueChips().contains(prc.getSymbol());
+        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
+
+        List<StockPrice> topGainers = firebaseData.stream()
+                .sorted(comparatorByPercentageClose.reversed())
+                .limit(limit)
+                .filter(valueFilter.and(blueChipsFilter))
+                .collect(Collectors.toList());
+
+        List<StockPrice> topLosers = firebaseData.stream()
+                .sorted(comparatorByPercentageClose)
+                .limit(limit)
+                .filter(valueFilter.and(blueChipsFilter))
+                .collect(Collectors.toList());
+
+        List<StockPrice> mostActive = firebaseData.stream()
+                .sorted(Comparator.comparing((StockPrice prc) -> prc.getTotalValue()).reversed())
+                .limit(limit)
+                .filter(blueChipsFilter)
+                .collect(Collectors.toList());
+
+        return Stream.of(topGainers,topLosers,mostActive).flatMap(Collection::stream).distinct().collect(Collectors.toList());
+    }
 
     private List<StockPrice> fetchStockDetails(String symbol, String securityId) {
         MultiValueMap<String, String> param = createMultiMap(pseiConfig.getCompanyPriceApiName());

@@ -11,10 +11,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/stocks")
@@ -76,25 +77,10 @@ public class StocksController {
     @GetMapping({"by/{date}/watch", "watch"})
     public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
-        Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
-        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
         Integer currentLimit = limit.isPresent() ? limit.get() : 15;
-        String availableDate = date.isPresent() ? date.get() : stockService.queryLastDate().orElse(LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now()));
-        List<StockPrice> firebaseData = stockService.getFirebaseData(availableDate);
-
-        List<StockPrice> topGainers = firebaseData.stream()
-                .sorted(comparatorByPercentageClose.reversed())
-                .limit(currentLimit)
-                .filter(valueFilter)
-                .collect(Collectors.toList());
-
-        List<StockPrice> topLosers = firebaseData.stream()
-                .sorted(comparatorByPercentageClose)
-                .limit(currentLimit)
-                .filter(valueFilter)
-                .collect(Collectors.toList());
-
-        stocksWrapper.setStocks(Stream.concat(topGainers.stream(), topLosers.stream()) .collect(Collectors.toList()));
+        String currentDate = LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now());
+        String availableDate = date.isPresent() ? date.get() : stockService.queryLastDate().orElse(currentDate);
+        stocksWrapper.setStocks(stockService.filterWatchList(availableDate,currentLimit));
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
         return stocksWrapper;
     }
