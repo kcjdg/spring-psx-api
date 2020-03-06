@@ -1,8 +1,6 @@
 package com.herokuapp.psxapi.helper;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class LocalDateUtils {
@@ -41,7 +39,6 @@ public class LocalDateUtils {
     }
 
 
-
     private static LocalDateTime asiaManilaTime(LocalDateTime localTime){
         ZonedDateTime zonedGMT = localTime.atZone(ZoneId.of("GMT+8"));
         ZonedDateTime zonedIST = zonedGMT.withZoneSameInstant(ZoneId.of("Asia/Manila"));
@@ -56,6 +53,10 @@ public class LocalDateUtils {
         return asiaManilaTime(LocalDateTime.parse(time, STANDARD_FORMAT));
     }
 
+
+   public static LocalDate getMondayThisWeek(){
+       return LocalDateUtils.now().toLocalDate().with(DayOfWeek.MONDAY);
+   }
 
 
 }
