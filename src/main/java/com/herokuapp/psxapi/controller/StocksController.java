@@ -11,11 +11,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 @RestController
 @RequestMapping("/stocks")
@@ -85,6 +86,25 @@ public class StocksController {
         return stocksWrapper;
     }
 
+
+
+    @GetMapping("watch/weekly")
+    public StocksWrapper filterTopStocksByWeekly() {
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        Integer currentLimit = 15;
+        List<StockPrice> weeklyWatchList = new ArrayList<>();
+        LocalDate startDate = LocalDateUtils.getMondayThisWeek();
+        LocalDate today = LocalDateUtils.now().toLocalDate();
+        while(startDate.isBefore(today)){
+            weeklyWatchList.addAll(stockService.filterWatchList(startDate.toString(),currentLimit));
+            startDate = startDate.plusDays(1);
+        }
+        stocksWrapper.setStocks(
+                weeklyWatchList.stream()
+                        .collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(StockPrice::getSymbol))), ArrayList::new)));
+        stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
+        return stocksWrapper;
+    }
 
 
 
