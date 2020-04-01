@@ -147,10 +147,10 @@ public class StockServiceImpl implements StockService {
 
 
     @Override
-    public List<StockPrice> filterWatchList(String date, Integer limit) {
+    public List<StockPrice> filterWatchList(String date, Integer limit, boolean hasBlueChips) {
         List<StockPrice> firebaseData = getFirebaseData(date);
         Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
-        Predicate<StockPrice> blueChipsFilter = prc-> !pseiConfig.getBlueChips().contains(prc.getSymbol());
+        Predicate<StockPrice> blueChipsFilter = prc-> !hasBlueChips ? !pseiConfig.getBlueChips().contains(prc.getSymbol()) : true;
         Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
 
         List<StockPrice> topGainers = firebaseData.stream()

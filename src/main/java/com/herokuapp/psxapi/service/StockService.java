@@ -22,6 +22,6 @@ public interface StockService {
 
     Optional<StockPrice> findStockDetails(String symbol);
 
-    List<StockPrice> filterWatchList(String date, Integer limit);
+    List<StockPrice> filterWatchList(String date, Integer limit, boolean hasBlueChips);
 
 }

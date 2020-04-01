@@ -76,12 +76,12 @@ public class StocksController {
 
 
     @GetMapping({"by/{date}/watch", "watch"})
-    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit) {
+    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit, @RequestParam(required = false) Optional<Boolean> blueChips) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Integer currentLimit = limit.isPresent() ? limit.get() : 15;
         String currentDate = LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now());
         String availableDate = date.isPresent() ? date.get() : stockService.queryLastDate().orElse(currentDate);
-        stocksWrapper.setStocks(stockService.filterWatchList(availableDate,currentLimit));
+        stocksWrapper.setStocks(stockService.filterWatchList(availableDate,currentLimit,blueChips.orElse(false)));
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
         return stocksWrapper;
     }
@@ -89,14 +89,14 @@ public class StocksController {
 
 
     @GetMapping("watch/weekly")
-    public StocksWrapper filterTopStocksByWeekly() {
+    public StocksWrapper filterTopStocksByWeekly(@RequestParam(required = false) Optional<Boolean> blueChips) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Integer currentLimit = 15;
         List<StockPrice> weeklyWatchList = new ArrayList<>();
         LocalDate startDate = LocalDateUtils.getMondayThisWeek();
         LocalDate today = LocalDateUtils.now().toLocalDate();
         while(startDate.isBefore(today)){
-            weeklyWatchList.addAll(stockService.filterWatchList(startDate.toString(),currentLimit));
+            weeklyWatchList.addAll(stockService.filterWatchList(startDate.toString(),currentLimit,blueChips.orElse(false)));
             startDate = startDate.plusDays(1);
         }
         stocksWrapper.setStocks(
