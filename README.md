@@ -4,3 +4,9 @@
 
 
 An API for Philippine Stock Exchange (PSEI) created using Spring Framework and deployed in Heroku
+
+## API Usage
+```bash
+curl https://spring-psx-api.herokuapp.com/stocks
+```
+List all companies in Philippine Stock Exchange with it's latest stock price.
