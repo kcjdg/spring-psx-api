@@ -105,10 +105,8 @@ public class StockServiceImpl implements StockService {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, createHttpHeaders());
         final ResponseEntity<List<StockPrice>> exchange = restTemplate.exchange(pseiConfig.getFirebaseApi() + "/{date}.json?access_token={token}", HttpMethod.GET, request, responseType, date, pseiConfig.getFirebaseToken());
-        if (exchange.getStatusCode() == HttpStatus.OK) {
-            if (exchange.getBody() != null) {
-                return exchange.getBody();
-            }
+        if (exchange.getStatusCode() == HttpStatus.OK && exchange.getBody() != null) {
+            return exchange.getBody();
         }
         return Collections.emptyList();
     }
@@ -149,9 +147,9 @@ public class StockServiceImpl implements StockService {
     @Override
     public List<StockPrice> filterWatchList(String date, Integer limit, boolean hasBlueChips) {
         List<StockPrice> firebaseData = getFirebaseData(date);
-        Predicate<StockPrice> valueFilter = prc->prc.getTotalValue().doubleValue() > 10_000_000;
-        Predicate<StockPrice> blueChipsFilter = prc-> !hasBlueChips ? !pseiConfig.getBlueChips().contains(prc.getSymbol()) : true;
-        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing((StockPrice prc) -> prc.getPercentageClose());
+        Predicate<StockPrice> valueFilter = prc -> prc.getTotalValue().doubleValue() > 10_000_000;
+        Predicate<StockPrice> blueChipsFilter = prc -> !hasBlueChips && !pseiConfig.getBlueChips().contains(prc.getSymbol());
+        Comparator<StockPrice> comparatorByPercentageClose = Comparator.comparing(StockPrice::getPercentageClose);
 
         List<StockPrice> topGainers = firebaseData.stream()
                 .sorted(comparatorByPercentageClose.reversed())
@@ -166,12 +164,13 @@ public class StockServiceImpl implements StockService {
                 .collect(Collectors.toList());
 
         List<StockPrice> mostActive = firebaseData.stream()
-                .sorted(Comparator.comparing((StockPrice prc) -> prc.getTotalValue()).reversed())
+                .sorted(Comparator.comparing(StockPrice::getTotalValue).reversed())
                 .limit(limit)
                 .filter(blueChipsFilter)
                 .collect(Collectors.toList());
 
-        return Stream.of(topGainers,topLosers,mostActive).flatMap(Collection::stream).distinct().collect(Collectors.toList());
+
+        return Stream.of(topGainers, topLosers, mostActive).flatMap(Collection::stream).distinct().collect(Collectors.toList());
     }
 
     private List<StockPrice> fetchStockDetails(String symbol, String securityId) {

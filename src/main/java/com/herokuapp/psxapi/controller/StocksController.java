@@ -47,7 +47,7 @@ public class StocksController {
 
     @GetMapping("/{symbol}/details")
     public StocksWrapper<StockPrice> findStockWithDetails(@PathVariable String symbol) {
-        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper<>();
         StockPrice stockPrice = stockService.findStockDetails(symbol.toUpperCase()).orElseThrow(StockNotFoundException::new);
         stocksWrapper.setStocks(Collections.singletonList(stockPrice));
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
@@ -57,7 +57,7 @@ public class StocksController {
 
     @GetMapping("by/{date}")
     public StocksWrapper<StockPrice> findStocksByDate(@PathVariable String date) {
-        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper<>();
         List<StockPrice> firebaseData = stockService.getFirebaseData(date);
         stocksWrapper.setStocks(firebaseData);
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
@@ -67,7 +67,7 @@ public class StocksController {
 
     @GetMapping("by/{date}/{symbol}")
     public StocksWrapper<StockPrice> findStocksByDateAndSymbol(@PathVariable String date, @PathVariable String symbol) {
-        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper<>();
         List<StockPrice> firebaseData = stockService.getFirebaseData(date).stream().filter(stks->StringUtils.equalsIgnoreCase(symbol,stks.getSymbol())).collect(Collectors.toList());
         stocksWrapper.setStocks(firebaseData);
         stocksWrapper.setAsOf(LocalDateUtils.formatToStandardTimeAsString(LocalDateUtils.now()));
@@ -77,7 +77,7 @@ public class StocksController {
 
     @GetMapping({"by/{date}/watch", "watch"})
     public StocksWrapper<StockPrice> filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit, @RequestParam(required = false) Optional<Boolean> blueChips) {
-        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper<>();
         Integer currentLimit = limit.isPresent() ? limit.get() : 15;
         String currentDate = LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now());
         String availableDate = date.isPresent() ? date.get() : stockService.queryLastDate().orElse(currentDate);
@@ -90,7 +90,7 @@ public class StocksController {
 
     @GetMapping("watch/weekly")
     public StocksWrapper<StockPrice> filterTopStocksByWeekly(@RequestParam(required = false) Optional<Boolean> blueChips) {
-        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper<>();
         Integer currentLimit = 15;
         List<StockPrice> weeklyWatchList = new ArrayList<>();
         LocalDate startDate = LocalDateUtils.getMondayThisWeek();
