@@ -26,7 +26,7 @@ public class StocksController {
     private final StockService stockService;
 
     @GetMapping("")
-    public StocksWrapper getStocks(@RequestParam(required = false) String... symbols) {
+    public StocksWrapper<StocksDto> getStocks(@RequestParam(required = false) String... symbols) {
         List<StocksDto> allStocks = stockService.getAllStocks();
         if (!ArrayUtils.isEmpty(symbols)) {
             return wrapResults(allStocks.stream()
@@ -37,7 +37,7 @@ public class StocksController {
     }
 
     @GetMapping("/{symbol}")
-    public StocksWrapper findStock(@PathVariable String symbol) {
+    public StocksWrapper<StocksDto> findStock(@PathVariable String symbol) {
         List<StocksDto> allStocks = stockService.getAllStocks();
         return wrapResults(allStocks.stream().
                 filter(e -> StringUtils.equalsIgnoreCase(e.getPrice(), "date") || StringUtils.equalsAnyIgnoreCase(e.getSymbol(), symbol)).
@@ -46,7 +46,7 @@ public class StocksController {
 
 
     @GetMapping("/{symbol}/details")
-    public StocksWrapper findStockWithDetails(@PathVariable String symbol) {
+    public StocksWrapper<StockPrice> findStockWithDetails(@PathVariable String symbol) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         StockPrice stockPrice = stockService.findStockDetails(symbol.toUpperCase()).orElseThrow(StockNotFoundException::new);
         stocksWrapper.setStocks(Collections.singletonList(stockPrice));
@@ -56,7 +56,7 @@ public class StocksController {
 
 
     @GetMapping("by/{date}")
-    public StocksWrapper findStocksByDate(@PathVariable String date) {
+    public StocksWrapper<StockPrice> findStocksByDate(@PathVariable String date) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         List<StockPrice> firebaseData = stockService.getFirebaseData(date);
         stocksWrapper.setStocks(firebaseData);
@@ -66,7 +66,7 @@ public class StocksController {
 
 
     @GetMapping("by/{date}/{symbol}")
-    public StocksWrapper findStocksByDateAndSymbol(@PathVariable String date, @PathVariable String symbol) {
+    public StocksWrapper<StockPrice> findStocksByDateAndSymbol(@PathVariable String date, @PathVariable String symbol) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         List<StockPrice> firebaseData = stockService.getFirebaseData(date).stream().filter(stks->StringUtils.equalsIgnoreCase(symbol,stks.getSymbol())).collect(Collectors.toList());
         stocksWrapper.setStocks(firebaseData);
@@ -76,7 +76,7 @@ public class StocksController {
 
 
     @GetMapping({"by/{date}/watch", "watch"})
-    public StocksWrapper filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit, @RequestParam(required = false) Optional<Boolean> blueChips) {
+    public StocksWrapper<StockPrice> filterTopStocksByValueOf10M(@PathVariable(required = false) Optional<String> date, @RequestParam(required = false) Optional<Integer> limit, @RequestParam(required = false) Optional<Boolean> blueChips) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Integer currentLimit = limit.isPresent() ? limit.get() : 15;
         String currentDate = LocalDateUtils.convertToDateFormatOnly(LocalDateUtils.now());
@@ -89,7 +89,7 @@ public class StocksController {
 
 
     @GetMapping("watch/weekly")
-    public StocksWrapper filterTopStocksByWeekly(@RequestParam(required = false) Optional<Boolean> blueChips) {
+    public StocksWrapper<StockPrice> filterTopStocksByWeekly(@RequestParam(required = false) Optional<Boolean> blueChips) {
         StocksWrapper<StockPrice> stocksWrapper = new StocksWrapper();
         Integer currentLimit = 15;
         List<StockPrice> weeklyWatchList = new ArrayList<>();
@@ -108,9 +108,9 @@ public class StocksController {
 
 
 
-    private StocksWrapper wrapResults(List<StocksDto> stocks) {
+    private StocksWrapper<StocksDto> wrapResults(List<StocksDto> stocks) {
         String date;
-        StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper();
+        StocksWrapper<StocksDto> stocksWrapper = new StocksWrapper<>();
         Optional<StocksDto> index = stocks.stream().findFirst();
         if (index.isPresent()) {
             date = index.get().getName();
