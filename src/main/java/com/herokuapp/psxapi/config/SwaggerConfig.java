@@ -30,7 +30,7 @@ public class SwaggerConfig {
                 .groupName("spring-pxs-api-"+VERSION)
                 .select()
                     .apis(RequestHandlerSelectors.basePackage("com.herokuapp.psxapi.controller"))
-                    .paths(PathSelectors.regex("/v1.*/stocks"))
+                    .paths(PathSelectors.regex("/v1.*"))
                 .build();
     }
 }
