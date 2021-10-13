@@ -102,7 +102,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -153,10 +153,10 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <!-- the @{argLine} is needed for proper jacoco execution -->
-                    <argLine>@{argLine} -Xmx256m</argLine>
-                </configuration>
+<!--                <configuration>-->
+<!--                    &lt;!&ndash; the @{argLine} is needed for proper jacoco execution &ndash;&gt;-->
+<!--                    <argLine>@{argLine} -Xmx256m</argLine>-->
+<!--                </configuration>-->
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
