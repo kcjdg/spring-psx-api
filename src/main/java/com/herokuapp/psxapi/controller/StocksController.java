@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
 @RestController
-@RequestMapping("/stocks")
+@RequestMapping("/v1/stocks")
 @RequiredArgsConstructor
 public class StocksController {
 

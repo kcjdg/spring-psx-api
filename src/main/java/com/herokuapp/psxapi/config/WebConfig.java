@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addRedirectViewController("/docu/v2/api-docs", "/v2/api-docs");
+        registry.addRedirectViewController("/docu/v2/api-docs", "/v2/api-docs?group=spring-pxs-api-1.0");
         registry.addRedirectViewController("/docu/swagger-resources/configuration/ui", "/swagger-resources/configuration/ui");
         registry.addRedirectViewController("/docu/swagger-resources/configuration/security", "/swagger-resources/configuration/security");
         registry.addRedirectViewController("/docu/swagger-resources", "/swagger-resources");
