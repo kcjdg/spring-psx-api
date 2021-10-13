@@ -65,7 +65,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.11</version>
+            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
@@ -153,6 +153,10 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- the @{argLine} is needed for proper jacoco execution -->
+                    <argLine>@{argLine} -Xmx256m</argLine>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
