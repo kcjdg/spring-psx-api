@@ -6,7 +6,7 @@ addons:
     token:
       secure: wtnnl3Q5VdKXCD2gP+Un4ONLQkTlf0P/AvuBljAW7AcTsri8ynEFQHqn8y5UdBMaihTF+5yaYc5PHRe3ZI8bIuED0UwO76a/+echNE3EjPNYZ2IZ0jIBsIORn0XoODn7BjEjooYoVwWL5+4ubBgmkyBXSuDco7eH0A2SO4v2PBhnK/Bimt/o7mFOLQT3GbFl+ZzoN7QrfkLmsS8Q5Oj29mbsv5J/wt17uAxnzt0uFQHcRSeE4io8UUJAkFNfaHm2juf3wIbW2ZlUSbKfkWdmpV28tfw+WvbI3StQ5lcIq9xUTYH9QAS9OW13d19eiy0gjHgd/OmF0FuPze2Sl5nR1GVCWubeBI2I0hMB15pfqw0athjqBSznGtWP/j/QD/ZkmkpVsXN7CgLPGkZYIMq33lF4WNWHn2cLZOZkV0k+algVBlt7TwpB0Ytl+MwIEK1FpDa6VNqfzUBoj3ukXwo1KdaEUgNydPF5NdqcjlhyNmOdoQhYWLrrVU3TDJX+QFN4QwbTP5mPix/aNW/LsHS7+HGMrKhZR7rJIfZUg5k+CiGLOVIqn49CKCSsi8sb7w5SSiqIJ5ZzhSabfsLNgAOJSeVyTRYGu4ov3Kih69aMYjZk4Q4fYhVMm1sPU7hLl9sZfM0GYftFEll7yqMdo/4nYlgiPy9k/BVfobxbB+D6E7A=
 script:
-  - mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent verify
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package org.jacoco:jacoco-maven-plugin:report
 jdk:
 - oraclejdk8
 deploy:
