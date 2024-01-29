@@ -1,6 +1,6 @@
 HELP.md
 target/
-src/main/java/com/herokuapp/psxapi/model/*
+src/main/java/com/psxapi/trading/stocks/model/*
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
